@@ -11,6 +11,55 @@ class newCollection extends Collection
 {
 
     /**
+     * Locale region name table name
+     *
+     * @var string
+     */
+    protected $_regionNameTable;
+
+    /**
+     * Country table name
+     *
+     * @var string
+     */
+    protected $_countryTable;
+
+    /**
+     * @var \Magento\Framework\Locale\ResolverInterface
+     */
+    protected $_localeResolver;
+
+    /**
+     * @var AllowedCountries
+     */
+    protected  $scopeConfigInterface;
+    protected $stateFactory;
+    protected  $countryFactory;
+    private $allowedCountriesReader;
+
+
+    public function __construct(
+        \Magento\Framework\Data\Collection\EntityFactory $entityFactory,
+        \Psr\Log\LoggerInterface $logger,
+        \Magento\Framework\Data\Collection\Db\FetchStrategyInterface $fetchStrategy,
+        \Magento\Framework\Event\ManagerInterface $eventManager,
+        \Magento\Framework\Locale\ResolverInterface $localeResolverAdmin,
+        \InteractOne\LimitStates\Model\StateFactory $stateFactory,
+        \Magento\Directory\Model\CountryFactory $countryFactory,
+        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfigInterface,
+        \Magento\Framework\DB\Adapter\AdapterInterface $connection = null,
+        \Magento\Framework\Model\ResourceModel\Db\AbstractDb $resource = null
+
+    ) {
+        $this->_localeResolverAdmin = $localeResolverAdmin;
+        $this->stateFactory = $stateFactory;
+        $this->_resource = $resource;
+        $this->countryFactory = $countryFactory;
+        $this->scopeConfigInterface = $scopeConfigInterface;
+
+
+    }
+    /**
      * Define main, country, locale region name tables
      *
      * @return void
@@ -25,10 +74,60 @@ class newCollection extends Collection
         $this->addOrder('name', \Magento\Framework\Data\Collection::SORT_ORDER_ASC);
         $this->addOrder('default_name', \Magento\Framework\Data\Collection::SORT_ORDER_ASC);
     }
+    /**
+     * Initialize select object
+     *
+     * @return $this
+     */
+    protected function _initSelect()
+    {
+        parent::_initSelect();
+        $locale = $this->_localeResolver->getLocale();
 
+        $this->addBindParam(':region_locale', $locale);
+        $this->getSelect()->joinLeft(
+            ['rname' => $this->_regionNameTable],
+            'main_table.region_id = rname.region_id AND rname.locale = :region_locale',
+            ['name']
+        );
 
+        return $this;
+    }
 
+    /**
+     * Return Allowed Countries reader
+     *
+     * @return \Magento\Directory\Model\AllowedCountries
+     * @deprecated 100.1.4
+     */
+    private function getAllowedCountriesReader()
+    {
+        if (!$this->allowedCountriesReader) {
+            $this->allowedCountriesReader = ObjectManager::getInstance()->get(AllowedCountries::class);
+        }
 
+        return $this->allowedCountriesReader;
+    }
+
+    /**
+     * Set allowed countries filter based on the given store.
+     * This is a convenience method for collection filtering based on store configuration settings.
+     *
+     * @param null|int|string|\Magento\Store\Model\Store $store
+     * @return \Magento\Directory\Model\ResourceModel\Region\Collection
+     * @since 100.1.4
+     */
+    public function addAllowedCountriesFilter($store = null)
+    {
+        $allowedCountries = $this->getAllowedCountriesReader()
+            ->getAllowedCountries(ScopeInterface::SCOPE_STORE, $store);
+
+        if (!empty($allowedCountries)) {
+            $this->addFieldToFilter('main_table.country_id', ['in' => $allowedCountries]);
+        }
+
+        return $this;
+    }
 
     /**
      * Filter by country_id

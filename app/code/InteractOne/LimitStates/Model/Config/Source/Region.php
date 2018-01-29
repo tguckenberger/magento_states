@@ -3,6 +3,7 @@
 namespace InteractOne\LimitStates\Model\Config\Source;
 
 use InteractOne\LimitStates\Model\newCountryFactory;
+//use Magento\Directory\Model\CountryFactory;
 
 class Region implements \Magento\Framework\Option\ArrayInterface {
 
@@ -14,7 +15,7 @@ class Region implements \Magento\Framework\Option\ArrayInterface {
 
     // Returns an array of states, via country code US.
     public function toOptionArray() {
-            $stateArray = $this->_country->create()->setID('US')->getLoadedRegionCollection()->toOptionArray();
+            $stateArray = $this->_country->create()->setId('US')->getLoadedRegionCollection()->toOptionArray();
             $stateArray = array_slice($stateArray, 1, count($stateArray)-1);
             return $stateArray;
     }

@@ -42,7 +42,7 @@ class SchemaXml
     protected $requiredFields = [
         'name',
         'entity_type',
-        'newCollection',
+        'collection',
     ];
 
     /**
@@ -107,7 +107,7 @@ class SchemaXml
     {
         $classShortName = ucfirst($config['name']);
         $fileName = $classShortName . '.xml';
-        $collection = explode('\\', $config['newCollection']);
+        $collection = explode('\\', $config['collection']);
         $collection = array_values(array_filter($collection));
         $path = $collection[0] . '\\' . $collection[1] . '\Test\Fixture\\';
         $module = $collection[0] . '_' . $collection[1];
@@ -132,7 +132,7 @@ class SchemaXml
         $fixture->setAttribute('name', $config['name']);
         $fixture->setAttribute('module', $module);
         $fixture->setAttribute('type', $config['type']);
-        $fixture->setAttribute('newCollection', implode('\\', $collection));
+        $fixture->setAttribute('collection', implode('\\', $collection));
         $fixture->setAttribute('repository_class', $repositoryClass);
         $fixture->setAttribute('handler_interface', $handlerInterface);
         $fixture->setAttribute('class', $fixtureClass);

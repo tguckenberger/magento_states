@@ -21,7 +21,7 @@ $objectManager = Bootstrap::getObjectManager();
 $productRepository = $objectManager->create(ProductRepositoryInterface::class);
 $product = $productRepository->get('configurable_express');
 
-/** @var $options newCollection */
+/** @var $options Collection */
 $options = $objectManager->create(Collection::class);
 $option = $options->setAttributeFilter($attribute->getId())->getFirstItem();
 

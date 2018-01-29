@@ -57,7 +57,7 @@ foreach (range(1, 2) as $index) {
     $selectAttribute->save();
     /* Assign attribute to attribute set */
     $installer->addAttributeToGroup('catalog_product', 'Default', 'General', $selectAttribute->getId());
-    /** @var $selectOptions newCollection */
+    /** @var $selectOptions Collection */
     $selectOption = Bootstrap::getObjectManager()->create(
         Collection::class
     );

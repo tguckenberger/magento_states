@@ -230,7 +230,7 @@ class ProductTest extends \PHPUnit\Framework\TestCase
             [
                 'rowCustomizer' => $rowCustomizerMock,
                 'logger' => $loggerMock,
-                'newCollection' => $collection
+                'collection' => $collection
             ]
         );
 

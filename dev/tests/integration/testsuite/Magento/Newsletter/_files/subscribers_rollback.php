@@ -11,7 +11,7 @@ $registry = $objectManager->get(\Magento\Framework\Registry::class);
 $registry->unregister('isSecureArea');
 $registry->register('isSecureArea', true);
 
-/** @var newCollection $collection */
+/** @var Collection $collection */
 $subscriberCollection =  $objectManager->get(\Magento\Newsletter\Model\ResourceModel\Subscriber\Collection::class);
 foreach ($subscriberCollection as $subscriber) {
     /** @var Magento\Newsletter\Model\Subscriber $subscriber */

@@ -8,11 +8,12 @@
 
 namespace InteractOne\LimitStates\Model\ResourceModel\Region;
 
+use InteractOne\LimitStates\Model\ResourceModel\State\Collection;
 use Magento\Directory\Model\AllowedCountries;
 use Magento\Framework\App\ObjectManager;
 use Magento\Store\Model\ScopeInterface;
 
-class newCollectionAdmin extends \Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection
+class newCollectionAdmin extends Collection
 {
     /**
      * Locale region name table name
@@ -32,11 +33,15 @@ class newCollectionAdmin extends \Magento\Framework\Model\ResourceModel\Db\Colle
      * @var \Magento\Framework\Locale\ResolverInterface
      */
     protected $_localeResolverAdmin;
+    protected $stateFactory;
+    protected  $scopeConfigInterface;
+    protected $scope;
 
     /**
      * @var AllowedCountries
      */
     private $allowedCountriesReaderAdmin;
+
 
     /**
      * @param \Magento\Framework\Data\Collection\EntityFactory $entityFactory
@@ -53,11 +58,17 @@ class newCollectionAdmin extends \Magento\Framework\Model\ResourceModel\Db\Colle
         \Magento\Framework\Data\Collection\Db\FetchStrategyInterface $fetchStrategyAdmin,
         \Magento\Framework\Event\ManagerInterface $eventManagerAdmin,
         \Magento\Framework\Locale\ResolverInterface $localeResolverAdmin,
+        \InteractOne\LimitStates\Model\StateFactory $stateFactory,
+        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfigInterface,
+        \Magento\Framework\Config\ScopeInterface $scope,
         \Magento\Framework\DB\Adapter\AdapterInterface $connectionAdmin = null,
         \Magento\Framework\Model\ResourceModel\Db\AbstractDb $resourceAdmin = null
     ) {
         $this->_localeResolverAdmin = $localeResolverAdmin;
         $this->_resource = $resourceAdmin;
+        $this->stateFactory = $stateFactory;
+        $this->scope = $scope;
+        $this->scopeConfigInterface = $scopeConfigInterface;
         parent::__construct($entityFactoryAdmin, $loggerAdmin, $fetchStrategyAdmin, $eventManagerAdmin, $connectionAdmin, $resourceAdmin);
     }
 
@@ -71,7 +82,7 @@ class newCollectionAdmin extends \Magento\Framework\Model\ResourceModel\Db\Colle
         $this->_init(\Magento\Directory\Model\Region::class, \Magento\Directory\Model\ResourceModel\Region::class);
 
         $this->_countryTableAdmin = $this->getTable('directory_country');
-        $this->_regionNameTableAdmin = $this->getTable('directory_country_region_name');
+        $this->_regionNameTableAdmin = $this->getTable('directory_country_region_name_io');
 
         $this->addOrder('name', \Magento\Framework\Data\Collection::SORT_ORDER_ASC);
         $this->addOrder('default_name', \Magento\Framework\Data\Collection::SORT_ORDER_ASC);
@@ -147,6 +158,14 @@ class newCollectionAdmin extends \Magento\Framework\Model\ResourceModel\Db\Colle
                 $this->addFieldToFilter('main_table.country_id', $countryId);
             }
         }
+        $stateIndex = explode(',',$this->scopeConfigInterface->getValue('general/region/limit_states'));
+
+                if ($countryId == 'US') {
+
+                    $this->addUSRegionNameFilter($stateIndex);
+                }
+
+
         return $this;
     }
 
@@ -167,6 +186,32 @@ class newCollectionAdmin extends \Magento\Framework\Model\ResourceModel\Db\Colle
         );
 
         return $this;
+    }
+
+    public function addUSRegionNameFilter($regionName){
+
+//        var_dump($regionName);
+        if (!empty($regionName)) {
+            print_r("Not Empty");
+            if (is_array($regionName)) {
+                $this->addFieldToFilter(array('main_table.default_name', 'main_table.country_id'), array(
+                    array('in' => $regionName),
+                    array('neq' => 'US')
+
+                ));
+                print_r("Not Empty first if inner");
+            } else {
+                $this->addFieldToFilter(array('main_table.default_name', 'main_table.country_id'), array(
+                    array('eq' => $regionName),
+                    array('neq' => 'US')
+                ));
+            }
+        }
+        print_r("End");
+        return $this;
+
+
+
     }
 
     /**
