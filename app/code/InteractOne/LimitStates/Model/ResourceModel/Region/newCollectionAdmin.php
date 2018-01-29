@@ -139,6 +139,14 @@ class newCollectionAdmin extends Collection
         if (!empty($allowedCountries)) {
             $this->addFieldToFilter('main_table.country_id', ['in' => $allowedCountries]);
         }
+        $stateIndex = explode(',',$this->scopeConfigInterface->getValue('general/region/limit_states'));
+        if($this->scope->getCurrentScope() != \Magento\Framework\App\Area::AREA_ADMINHTML) {
+            if ($this->addCountryFilter('US') || $this->addCountryCodeFilter('USA')) {
+
+                $this->addUSRegionNameFilter($stateIndex);
+            }
+
+        }
 
         return $this;
     }
@@ -159,11 +167,13 @@ class newCollectionAdmin extends Collection
             }
         }
         $stateIndex = explode(',',$this->scopeConfigInterface->getValue('general/region/limit_states'));
+        if($this->scope->getCurrentScope() != \Magento\Framework\App\Area::AREA_ADMINHTML) {
+            if ($countryId == 'US') {
 
-                if ($countryId == 'US') {
+                $this->addUSRegionNameFilter($stateIndex);
+            }
 
-                    $this->addUSRegionNameFilter($stateIndex);
-                }
+        }
 
 
         return $this;
@@ -178,19 +188,30 @@ class newCollectionAdmin extends Collection
     public function addCountryCodeFilter($countryCode)
     {
         $this->getSelect()->joinLeft(
-            ['country' => $this->_countryTable],
+            ['country' => $this->_countryTableAdmin],
             'main_table.country_id = country.country_id'
         )->where(
             'country.iso3_code = ?',
             $countryCode
         );
+        $stateIndex = explode(',',$this->scopeConfigInterface->getValue('general/region/limit_states'));
+        if($this->scope->getCurrentScope() != \Magento\Framework\App\Area::AREA_ADMINHTML) {
+            if ($countryCode == "USA") {
+
+                $this->addUSRegionNameFilter($stateIndex);
+            }
+
+        }
+
+
+
 
         return $this;
     }
 
     public function addUSRegionNameFilter($regionName){
 
-//        var_dump($regionName);
+        var_dump($regionName);
         if (!empty($regionName)) {
             print_r("Not Empty");
             if (is_array($regionName)) {
