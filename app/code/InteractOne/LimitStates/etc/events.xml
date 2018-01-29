@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <!--<event name="core_collection_abstract_load_before">-->
+    <!--<event name="customer_address_save_before">-->
+    <!--event after page load-->
+    <event name="controller_action_predispatch">
+        <observer name="loadStates" instance="InteractOne\LimitStates\Observer\LoadStates" />
+    </event>
+    <event name="states_load">
+        <observer name="loadStates" instance="InteractOne\LimitStates\Observer\LoadStates" />
+    </event>
+
+</config>
