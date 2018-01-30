@@ -4,9 +4,9 @@ namespace InteractOne\LimitStates\Model;
 
 class State extends \Magento\Framework\Model\AbstractModel implements \Magento\Framework\DataObject\IdentityInterface
 {
-    const CACHE_TAG = 'interactone_state';
-    protected $_cacheTag = 'interactone_state';
-    protected $_eventPrefix = 'interactone_state';
+    const CACHE_TAG = 'interactone_limit_states';
+    protected $_cacheTag = 'interactone_limit_states';
+    protected $_eventPrefix = 'interactone_limit_states';
     protected function _construct()
     {
         $this->_init('InteractOne\LimitStates\Model\ResourceModel\State');

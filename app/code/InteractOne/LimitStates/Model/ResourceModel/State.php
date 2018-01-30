@@ -12,6 +12,6 @@ class State extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
     }
     protected function _construct()
     {
-        $this->_init('interactone_states', 'state_id');
+        $this->_init('interactone_limit_states', 'state_id');
     }
 }

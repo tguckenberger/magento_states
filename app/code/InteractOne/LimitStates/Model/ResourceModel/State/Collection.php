@@ -5,7 +5,7 @@ namespace InteractOne\LimitStates\Model\ResourceModel\State;
 class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection
 {
     protected $_idFieldName = 'state_id';
-    protected $_eventPrefix = 'interactone_limitstates_state_collection';
+    protected $_eventPrefix = 'interactone_limit_states_state_collection';
     protected $_eventObject = 'state_collection';
     /**
      * Define resource model

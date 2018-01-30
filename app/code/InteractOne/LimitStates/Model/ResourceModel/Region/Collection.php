@@ -1,47 +1,59 @@
 <?php
 /**
- * Created by PhpStorm.
- * User: tristanguckenberger
- * Date: 1/26/18
- * Time: 4:52 PM
+ * Copyright © Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
  */
 
 namespace InteractOne\LimitStates\Model\ResourceModel\Region;
 
-use InteractOne\LimitStates\Model\ResourceModel\State\Collection;
+use InteractOne\LimitStates\Model\State;
+use InteractOne\LimitStates\Model\StateFactory;
 use Magento\Directory\Model\AllowedCountries;
+use Magento\Directory\Model\CountryFactory;
 use Magento\Framework\App\ObjectManager;
 use Magento\Store\Model\ScopeInterface;
 
-class newCollectionAdmin extends Collection
+/**
+ * Regions collection
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ *
+ * @api
+ * @since 100.0.2
+ */
+class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection
 {
     /**
      * Locale region name table name
      *
      * @var string
      */
-    protected $_regionNameTableAdmin;
+    protected $_regionNameTable;
 
     /**
      * Country table name
      *
      * @var string
      */
-    protected $_countryTableAdmin;
+    protected $_countryTable;
 
     /**
      * @var \Magento\Framework\Locale\ResolverInterface
      */
-    protected $_localeResolverAdmin;
-    protected $stateFactory;
-    protected  $scopeConfigInterface;
+    protected $_localeResolver;
+
+    protected $scopeConfigInterface;
+
     protected $scope;
+
+    protected $countryFactory;
+
+    protected $stateFactory;
 
     /**
      * @var AllowedCountries
      */
-    private $allowedCountriesReaderAdmin;
-
+    private $allowedCountriesReader;
 
     /**
      * @param \Magento\Framework\Data\Collection\EntityFactory $entityFactory
@@ -53,23 +65,26 @@ class newCollectionAdmin extends Collection
      * @param \Magento\Framework\Model\ResourceModel\Db\AbstractDb $resource
      */
     public function __construct(
-        \Magento\Framework\Data\Collection\EntityFactory $entityFactoryAdmin,
-        \Psr\Log\LoggerInterface $loggerAdmin,
-        \Magento\Framework\Data\Collection\Db\FetchStrategyInterface $fetchStrategyAdmin,
-        \Magento\Framework\Event\ManagerInterface $eventManagerAdmin,
-        \Magento\Framework\Locale\ResolverInterface $localeResolverAdmin,
-        \InteractOne\LimitStates\Model\StateFactory $stateFactory,
+        \Magento\Framework\Data\Collection\EntityFactory $entityFactory,
+        \Psr\Log\LoggerInterface $logger,
+        \Magento\Framework\Data\Collection\Db\FetchStrategyInterface $fetchStrategy,
+        \Magento\Framework\Event\ManagerInterface $eventManager,
+        \Magento\Framework\Locale\ResolverInterface $localeResolver,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfigInterface,
         \Magento\Framework\Config\ScopeInterface $scope,
-        \Magento\Framework\DB\Adapter\AdapterInterface $connectionAdmin = null,
-        \Magento\Framework\Model\ResourceModel\Db\AbstractDb $resourceAdmin = null
+        \Magento\Directory\Model\CountryFactory $countryFactory,
+        \InteractOne\LimitStates\Model\StateFactory $stateFactory,
+        \Magento\Framework\DB\Adapter\AdapterInterface $connection = null,
+        \Magento\Framework\Model\ResourceModel\Db\AbstractDb $resource = null
+
     ) {
-        $this->_localeResolverAdmin = $localeResolverAdmin;
-        $this->_resource = $resourceAdmin;
-        $this->stateFactory = $stateFactory;
-        $this->scope = $scope;
+        $this->_localeResolver = $localeResolver;
+        $this->_resource = $resource;
         $this->scopeConfigInterface = $scopeConfigInterface;
-        parent::__construct($entityFactoryAdmin, $loggerAdmin, $fetchStrategyAdmin, $eventManagerAdmin, $connectionAdmin, $resourceAdmin);
+        $this->scope = $scope;
+        $this->countryFactory = $countryFactory;
+        $this->stateFactory = $stateFactory;
+        parent::__construct($entityFactory, $logger, $fetchStrategy, $eventManager, $connection, $resource);
     }
 
     /**
@@ -81,8 +96,8 @@ class newCollectionAdmin extends Collection
     {
         $this->_init(\Magento\Directory\Model\Region::class, \Magento\Directory\Model\ResourceModel\Region::class);
 
-        $this->_countryTableAdmin = $this->getTable('directory_country');
-        $this->_regionNameTableAdmin = $this->getTable('directory_country_region_name_io');
+        $this->_countryTable = $this->getTable('directory_country');
+        $this->_regionNameTable = $this->getTable('directory_country_region_name');
 
         $this->addOrder('name', \Magento\Framework\Data\Collection::SORT_ORDER_ASC);
         $this->addOrder('default_name', \Magento\Framework\Data\Collection::SORT_ORDER_ASC);
@@ -96,11 +111,11 @@ class newCollectionAdmin extends Collection
     protected function _initSelect()
     {
         parent::_initSelect();
-        $localeAdmin = $this->_localeResolverAdmin->getLocale();
+        $locale = $this->_localeResolver->getLocale();
 
-        $this->addBindParam(':region_locale', $localeAdmin);
+        $this->addBindParam(':region_locale', $locale);
         $this->getSelect()->joinLeft(
-            ['rname' => $this->_regionNameTableAdmin],
+            ['rname' => $this->_regionNameTable],
             'main_table.region_id = rname.region_id AND rname.locale = :region_locale',
             ['name']
         );
@@ -116,11 +131,11 @@ class newCollectionAdmin extends Collection
      */
     private function getAllowedCountriesReader()
     {
-        if (!$this->allowedCountriesReaderAdmin) {
-            $this->allowedCountriesReaderAdmin = ObjectManager::getInstance()->get(AllowedCountries::class);
+        if (!$this->allowedCountriesReader) {
+            $this->allowedCountriesReader = ObjectManager::getInstance()->get(AllowedCountries::class);
         }
 
-        return $this->allowedCountriesReaderAdmin;
+        return $this->allowedCountriesReader;
     }
 
     /**
@@ -138,14 +153,6 @@ class newCollectionAdmin extends Collection
 
         if (!empty($allowedCountries)) {
             $this->addFieldToFilter('main_table.country_id', ['in' => $allowedCountries]);
-        }
-        $stateIndex = explode(',',$this->scopeConfigInterface->getValue('general/region/limit_states'));
-        if($this->scope->getCurrentScope() != \Magento\Framework\App\Area::AREA_ADMINHTML) {
-            if ($this->addCountryFilter('US') || $this->addCountryCodeFilter('USA')) {
-
-                $this->addUSRegionNameFilter($stateIndex);
-            }
-
         }
 
         return $this;
@@ -166,16 +173,7 @@ class newCollectionAdmin extends Collection
                 $this->addFieldToFilter('main_table.country_id', $countryId);
             }
         }
-        $stateIndex = explode(',',$this->scopeConfigInterface->getValue('general/region/limit_states'));
-        if($this->scope->getCurrentScope() != \Magento\Framework\App\Area::AREA_ADMINHTML) {
-            if ($countryId == 'US') {
-
-                $this->addUSRegionNameFilter($stateIndex);
-            }
-
-        }
-
-
+        $this->addUSRegionNameFilter();
         return $this;
     }
 
@@ -188,51 +186,13 @@ class newCollectionAdmin extends Collection
     public function addCountryCodeFilter($countryCode)
     {
         $this->getSelect()->joinLeft(
-            ['country' => $this->_countryTableAdmin],
+            ['country' => $this->_countryTable],
             'main_table.country_id = country.country_id'
         )->where(
             'country.iso3_code = ?',
             $countryCode
         );
-        $stateIndex = explode(',',$this->scopeConfigInterface->getValue('general/region/limit_states'));
-        if($this->scope->getCurrentScope() != \Magento\Framework\App\Area::AREA_ADMINHTML) {
-            if ($countryCode == "USA") {
-
-                $this->addUSRegionNameFilter($stateIndex);
-            }
-
-        }
-
-
-
-
         return $this;
-    }
-
-    public function addUSRegionNameFilter($regionName){
-
-        var_dump($regionName);
-        if (!empty($regionName)) {
-            print_r("Not Empty");
-            if (is_array($regionName)) {
-                $this->addFieldToFilter(array('main_table.default_name', 'main_table.country_id'), array(
-                    array('in' => $regionName),
-                    array('neq' => 'US')
-
-                ));
-                print_r("Not Empty first if inner");
-            } else {
-                $this->addFieldToFilter(array('main_table.default_name', 'main_table.country_id'), array(
-                    array('eq' => $regionName),
-                    array('neq' => 'US')
-                ));
-            }
-        }
-        print_r("End");
-        return $this;
-
-
-
     }
 
     /**
@@ -289,6 +249,35 @@ class newCollectionAdmin extends Collection
         return $this;
     }
 
+    public function addUSRegionNameFilter() {
+
+        // Only filter if scope is frontend
+        if ($this->scope->getCurrentScope() != \Magento\Framework\App\Area::AREA_ADMINHTML) {
+            $state = $this->stateFactory->create();
+            $stateCollection = $state->getCollection();
+            $stateCollection->addFieldToFilter(
+                'main_table.state_enabled',
+                array('eq' => true)
+            );
+            $enabledStates = $stateCollection->getColumnValues('name');
+
+            if (!empty($enabledStates)) {
+                if (is_array($enabledStates)) {
+                    $this->addFieldToFilter(array('main_table.default_name', 'main_table.country_id'), array(
+                        array('in' => $enabledStates),
+                        array('neq' => 'US')
+                    ));
+                } else {
+                    $this->addFieldToFilter(array('main_table.default_name', 'main_table.country_id'), array(
+                        array('eq' => $enabledStates),
+                        array('neq' => 'US')
+                    ));
+                }
+            }
+            return $this;
+        }
+    }
+
     /**
      * Convert collection items to select options array
      *
@@ -320,7 +309,4 @@ class newCollectionAdmin extends Collection
         }
         return $options;
     }
-
-
-
 }
