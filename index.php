@@ -17,13 +17,6 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-ini_set('error_reporting', E_ERROR);
-register_shutdown_function("fatal_handler");
-function fatal_handler() {
-    $error = error_get_last();
-    echo("<pre>");
-    print_r($error);
-}
 
 try {
     require __DIR__ . '/app/bootstrap.php';
