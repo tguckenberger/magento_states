@@ -5,7 +5,7 @@ namespace InteractOne\LimitStates\Observer;
 use InteractOne\LimitStates\Model\ResourceModel\Region\newCollection;
 use Magento\Framework\Event\ObserverInterface;
 
-class SaveStates extends newCollection implements ObserverInterface
+class SaveStates implements ObserverInterface
 {
 
     protected $stateFactory;
@@ -64,29 +64,6 @@ class SaveStates extends newCollection implements ObserverInterface
 //        $a->addCountryFilter("US");
 
     }
-
-//    public function addCountryFilter($countryId)
-//    {
-//
-//        $stateIndex = explode(',',$this->scopeConfigInterface->getValue('general/region/limit_states'));
-//        if (!empty($countryId)) {
-//            if (is_array($countryId)) {
-//                $this->addFieldToFilter('main_table.country_id', ['in' => $countryId]);
-//            } else {
-//                $this->addFieldToFilter('main_table.country_id', $countryId);
-//            }
-//        }
-//
-//        if ($countryId == 'US') {
-//
-//            $this->addUSRegionNameFilter($stateIndex);
-//        }
-//
-//
-//
-//
-//        return $this;
-//    }
 
 
 }
