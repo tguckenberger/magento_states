@@ -9,17 +9,26 @@ class SaveStates implements ObserverInterface {
     protected $countryFactory;
     protected $stateFactory;
     protected $scopeConfigInterface;
+    protected $cacheTypeList;
+    protected $cacheFrontendPool;
+
 
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
         \InteractOne\LimitStates\Model\StateFactory $stateFactory,
         \Magento\Directory\Model\CountryFactory $countryFactory,
-        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfigInterface
+        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfigInterface,
+        \Magento\Framework\App\Cache\TypeListInterface $cacheTypeList,
+        \Magento\Framework\App\Cache\Frontend\Pool $cacheFrontendPool
+
+
     )
     {
         $this->countryFactory = $countryFactory;
         $this->stateFactory = $stateFactory;
         $this->scopeConfigInterface = $scopeConfigInterface;
+        $this->cacheTypeList = $cacheTypeList;
+        $this->cacheFrontendPool = $cacheFrontendPool;
     }
 
     public function execute(\Magento\Framework\Event\Observer $observer)
@@ -59,6 +68,20 @@ class SaveStates implements ObserverInterface {
             } catch (\Exception $e) {
                 // TODO: handle exception
             }
+        }
+        $this->cacheClean();
+    }
+    // Cleans cache associated with this module so admin user doesn't have to.
+    public function cacheClean() {
+        $types = array(
+            'config',
+            'full_page',
+        );
+        foreach ($types as $type) {
+            $this->cacheTypeList->cleanType($type);
+        }
+        foreach ($this->cacheFrontendPool as $cacheFrontend) {
+            $cacheFrontend->getBackend()->clean();
         }
     }
 }
