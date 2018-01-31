@@ -3,6 +3,7 @@
 namespace InteractOne\LimitStates\Observer;
 
 use Magento\Framework\Event\ObserverInterface;
+use Magento\TestFramework\ErrorLog\Logger;
 
 class SaveStates implements ObserverInterface {
 
@@ -51,7 +52,7 @@ class SaveStates implements ObserverInterface {
             try {
                 $state->save();
             } catch (\Exception $e) {
-                // TODO: handle exception
+                \Monolog\Handler\error_log("Unable to Save");
             }
         }
 
@@ -66,7 +67,7 @@ class SaveStates implements ObserverInterface {
             try {
                 $state->save();
             } catch (\Exception $e) {
-                // TODO: handle exception
+                \Monolog\Handler\error_log("Unable to Save");
             }
         }
         $this->cacheClean();

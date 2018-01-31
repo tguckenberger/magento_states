@@ -36,7 +36,7 @@ class InstallSchema implements InstallSchemaInterface
             );
             $installer->getConnection()->createTable($table);
         } catch (\Zend_Db_Exception $e) {
-            // handle exception
+            \Monolog\Handler\error_log("Error in creating table, interactone_limit_states.");
         }
         $installer->endSetup();
     }

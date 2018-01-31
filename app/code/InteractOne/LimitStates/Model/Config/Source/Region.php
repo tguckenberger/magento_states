@@ -13,7 +13,6 @@ class Region implements \Magento\Framework\Option\ArrayInterface {
         $this->_country = $countryFactory;
         $this->stateFactory = $stateFactory;
     }
-
     // Returns an array of states, via country code US.
     // This populates the admin Limit US States drop down in Config\General\StateOptions
     public function toOptionArray() {

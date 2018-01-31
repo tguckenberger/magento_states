@@ -251,9 +251,11 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
         }
         return $this;
     }
-
-    public function addUSRegionNameFilter() {
-
+    /**
+     * Filter US Regions by allowed
+     */
+    public function addUSRegionNameFilter()
+    {
         // Only filter if scope is frontend
         if ($this->scope->getCurrentScope() != \Magento\Framework\App\Area::AREA_ADMINHTML) {
             $state = $this->stateFactory->create();

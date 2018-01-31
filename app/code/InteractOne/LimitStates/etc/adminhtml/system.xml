@@ -5,7 +5,7 @@
             <resource>InteractOne_LimitStates::limit</resource>
             <group id="region" translate="label" type="text" sortOrder="4" showInDefault="1" showInWebsite="0" showInStore="0">
                 <field id="limit_states" translate="label" type="multiselect" sortOrder="4" showInDefault="1" showInWebsite="0" showInStore="0">
-                    <label>Limit US States</label>
+                    <label>Select Allowed US States</label>
                     <source_model>InteractOne\LimitStates\Model\Config\Source\Region</source_model>
                 </field>
             </group>

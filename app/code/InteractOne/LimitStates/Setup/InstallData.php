@@ -35,7 +35,7 @@ class InstallData implements InstallDataInterface
             try {
                 $state->save();
             } catch (\Exception $e) {
-                // handle exception
+                \Monolog\Handler\error_log("Unable to Save");
             }
         }
         }
