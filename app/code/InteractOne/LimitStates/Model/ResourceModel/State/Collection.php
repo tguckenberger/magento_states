@@ -1,12 +1,21 @@
 <?php
-
+/**
+ * @author InteractOne Devs
+ * @copyright Copyright (c) 2018 InteractOne
+ * @package InteractOne\LimitStates\Model\ResourceModel\State
+ */
 namespace InteractOne\LimitStates\Model\ResourceModel\State;
 
+/**
+ * Class Collection
+ * @package InteractOne\LimitStates\Model\ResourceModel\State
+ */
 class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection
 {
     protected $_idFieldName = 'state_id';
     protected $_eventPrefix = 'interactone_limit_states_state_collection';
     protected $_eventObject = 'state_collection';
+
     /**
      * Define resource model
      *
@@ -14,6 +23,10 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
      */
     protected function _construct()
     {
-        $this->_init('InteractOne\LimitStates\Model\State', 'InteractOne\LimitStates\Model\ResourceModel\State');
+        //$this->_init('InteractOne\LimitStates\Model\State', 'InteractOne\LimitStates\Model\ResourceModel\State');
+        $this->_init(
+            \InteractOne\LimitStates\Model\State::class,
+            \InteractOne\LimitStates\Model\ResourceModel\State::class
+        );
     }
 }

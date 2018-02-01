@@ -1,0 +1,17 @@
+{
+  "name": "magento/marketplace-eqp",
+  "version": "1.0.5",
+  "description": "A set of PHP_CodeSniffer rules and sniffs.",
+  "license": "MIT",
+  "require": {
+    "php": ">=5.5.0",
+    "squizlabs/php_codesniffer": "2.6.2"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "4.1.0"
+  },
+  "scripts": {
+    "post-install-cmd": "\"vendor/bin/phpcs\" --config-set installed_paths ../../..",
+    "post-update-cmd": "\"vendor/bin/phpcs\" --config-set installed_paths ../../.."
+  }
+}

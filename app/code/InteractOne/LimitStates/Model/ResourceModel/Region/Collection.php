@@ -3,6 +3,13 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
+/**
+ * @author InteractOne Devs
+ * function - addUSRegionNameFilter()
+ * @copyright Copyright (c) 2018 InteractOne
+ * @package InteractOne\LimitStates\Model\ResourceModel\Region
+ */
+
 
 namespace InteractOne\LimitStates\Model\ResourceModel\Region;
 
@@ -12,6 +19,14 @@ use Magento\Directory\Model\AllowedCountries;
 use Magento\Directory\Model\CountryFactory;
 use Magento\Framework\App\ObjectManager;
 use Magento\Store\Model\ScopeInterface;
+use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\Locale\ResolverInterface;
+use Magento\Framework\Event\ManagerInterface;
+use Magento\Framework\Data\Collection\Db\FetchStrategyInterface;
+use Psr\Log\LoggerInterface;
+use Magento\Framework\Data\Collection\EntityFactory;
+use Magento\Framework\DB\Adapter\AdapterInterface;
+use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
 
 /**
  * Regions collection
@@ -23,6 +38,7 @@ use Magento\Store\Model\ScopeInterface;
  */
 class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection
 {
+
     /**
      * Locale region name table name
      *
@@ -42,12 +58,24 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
      */
     protected $_localeResolver;
 
+    /**
+     * @var \Magento\Framework\App\Config\ScopeConfigInterface
+     */
     protected $scopeConfigInterface;
 
+    /**
+     * @var \Magento\Framework\Config\ScopeInterface
+     */
     protected $scope;
 
+    /**
+     * @var CountryFactory
+     */
     protected $countryFactory;
 
+    /**
+     * @var StateFactory
+     */
     protected $stateFactory;
 
     /**
@@ -56,28 +84,33 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     private $allowedCountriesReader;
 
     /**
-     * @param \Magento\Framework\Data\Collection\EntityFactory $entityFactory
-     * @param \Psr\Log\LoggerInterface $logger
-     * @param \Magento\Framework\Data\Collection\Db\FetchStrategyInterface $fetchStrategy
-     * @param \Magento\Framework\Event\ManagerInterface $eventManager
-     * @param \Magento\Framework\Locale\ResolverInterface $localeResolver
-     * @param mixed $connection
-     * @param \Magento\Framework\Model\ResourceModel\Db\AbstractDb $resource
+     * Collection constructor.
+     * @param EntityFactory $entityFactory
+     * @param LoggerInterface $logger
+     * @param FetchStrategyInterface $fetchStrategy
+     * @param ManagerInterface $eventManager
+     * @param ResolverInterface $localeResolver
+     * @param ScopeConfigInterface $scopeConfigInterface
+     * @param \Magento\Framework\Config\ScopeInterface $scope
+     * @param CountryFactory $countryFactory
+     * @param StateFactory $stateFactory
+     * @param AdapterInterface|null $connection
+     * @param AbstractDb|null $resource
      */
     public function __construct(
-        \Magento\Framework\Data\Collection\EntityFactory $entityFactory,
-        \Psr\Log\LoggerInterface $logger,
-        \Magento\Framework\Data\Collection\Db\FetchStrategyInterface $fetchStrategy,
-        \Magento\Framework\Event\ManagerInterface $eventManager,
-        \Magento\Framework\Locale\ResolverInterface $localeResolver,
-        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfigInterface,
+        EntityFactory $entityFactory,
+        LoggerInterface $logger,
+        FetchStrategyInterface $fetchStrategy,
+        ManagerInterface $eventManager,
+        ResolverInterface $localeResolver,
+        ScopeConfigInterface $scopeConfigInterface,
         \Magento\Framework\Config\ScopeInterface $scope,
-        \Magento\Directory\Model\CountryFactory $countryFactory,
-        \InteractOne\LimitStates\Model\StateFactory $stateFactory,
-        \Magento\Framework\DB\Adapter\AdapterInterface $connection = null,
-        \Magento\Framework\Model\ResourceModel\Db\AbstractDb $resource = null
-
-    ) {
+        CountryFactory $countryFactory,
+        StateFactory $stateFactory,
+        AdapterInterface $connection = null,
+        AbstractDb $resource = null
+    ) 
+{
         $this->_localeResolver = $localeResolver;
         $this->_resource = $resource;
         $this->scopeConfigInterface = $scopeConfigInterface;
@@ -115,9 +148,9 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
 
         $this->addBindParam(':region_locale', $locale);
         $this->getSelect()->joinLeft(
-            ['rname' => $this->_regionNameTable],
+            array('rname' => $this->_regionNameTable),
             'main_table.region_id = rname.region_id AND rname.locale = :region_locale',
-            ['name']
+            array('name')
         );
 
         return $this;
@@ -152,8 +185,9 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
             ->getAllowedCountries(ScopeInterface::SCOPE_STORE, $store);
 
         if (!empty($allowedCountries)) {
-            $this->addFieldToFilter('main_table.country_id', ['in' => $allowedCountries]);
+            $this->addFieldToFilter('main_table.country_id', array('in' => $allowedCountries));
         }
+
         $this->addUSRegionNameFilter();
         return $this;
     }
@@ -168,11 +202,12 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     {
         if (!empty($countryId)) {
             if (is_array($countryId)) {
-                $this->addFieldToFilter('main_table.country_id', ['in' => $countryId]);
+                $this->addFieldToFilter('main_table.country_id', array('in' => $countryId));
             } else {
                 $this->addFieldToFilter('main_table.country_id', $countryId);
             }
         }
+
         $this->addUSRegionNameFilter();
         return $this;
     }
@@ -186,7 +221,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     public function addCountryCodeFilter($countryCode)
     {
         $this->getSelect()->joinLeft(
-            ['country' => $this->_countryTable],
+            array('country' => $this->_countryTable),
             'main_table.country_id = country.country_id'
         )->where(
             'country.iso3_code = ?',
@@ -206,7 +241,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     {
         if (!empty($regionCode)) {
             if (is_array($regionCode)) {
-                $this->addFieldToFilter('main_table.code', ['in' => $regionCode]);
+                $this->addFieldToFilter('main_table.code', array('in' => $regionCode));
             } else {
                 $this->addFieldToFilter('main_table.code', $regionCode);
             }
@@ -225,7 +260,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     {
         if (!empty($regionName)) {
             if (is_array($regionName)) {
-                $this->addFieldToFilter('main_table.default_name', ['in' => $regionName]);
+                $this->addFieldToFilter('main_table.default_name', array('in' => $regionName));
             } else {
                 $this->addFieldToFilter('main_table.default_name', $regionName);
             }
@@ -243,16 +278,20 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     public function addRegionCodeOrNameFilter($region)
     {
         if (!empty($region)) {
-            $condition = is_array($region) ? ['in' => $region] : $region;
+            $condition = is_array($region) ? array('in' => $region) : $region;
             $this->addFieldToFilter(
-                ['main_table.code', 'main_table.default_name'],
-                [$condition, $condition]
+                array('main_table.code', 'main_table.default_name'),
+                array($condition, $condition)
             );
         }
+
         return $this;
     }
+
     /**
      * Filter US Regions by allowed
+     *
+     * @return $this
      */
     public function addUSRegionNameFilter()
     {
@@ -268,17 +307,22 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
 
             if (!empty($enabledStates)) {
                 if (is_array($enabledStates)) {
-                    $this->addFieldToFilter(array('main_table.default_name', 'main_table.country_id'), array(
+                    $this->addFieldToFilter(
+                        array('main_table.default_name', 'main_table.country_id'), array(
                         array('in' => $enabledStates),
                         array('neq' => 'US')
-                    ));
+                        )
+                    );
                 } else {
-                    $this->addFieldToFilter(array('main_table.default_name', 'main_table.country_id'), array(
+                    $this->addFieldToFilter(
+                        array('main_table.default_name', 'main_table.country_id'), array(
                         array('eq' => $enabledStates),
                         array('neq' => 'US')
-                    ));
+                        )
+                    );
                 }
             }
+
             return $this;
         }
     }
@@ -290,18 +334,19 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
      */
     public function toOptionArray()
     {
-        $options = [];
-        $propertyMap = [
+        $options = array();
+        $propertyMap = array(
             'value' => 'region_id',
             'title' => 'default_name',
             'country_id' => 'country_id',
-        ];
+        );
 
         foreach ($this as $item) {
-            $option = [];
+            $option = array();
             foreach ($propertyMap as $code => $field) {
                 $option[$code] = $item->getData($field);
             }
+
             $option['label'] = $item->getName();
             $options[] = $option;
         }
@@ -309,9 +354,10 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
         if (count($options) > 0) {
             array_unshift(
                 $options,
-                ['title' => '', 'value' => '', 'label' => __('Please select a region, state or province.')]
+                array('title' => '', 'value' => '', 'label' => __('Please select a region, state or province.'))
             );
         }
+
         return $options;
     }
 }
